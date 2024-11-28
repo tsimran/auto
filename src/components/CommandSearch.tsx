@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
-import { Terminal, Loader2 } from 'lucide-react';
+import { Terminal, Loader2, AlertCircle } from 'lucide-react';
 import { processCommand } from '../utils/command-processor';
 
 export const CommandSearch: React.FC = () => {
   const [command, setCommand] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!command.trim() || isExecuting) return;
 
     setIsExecuting(true);
+    setError(null);
+
     try {
       await processCommand(command);
       setCommand('');
     } catch (error) {
-      console.error('Command execution failed:', error);
+      setError(error instanceof Error ? error.message : 'Command execution failed');
     } finally {
       setIsExecuting(false);
     }
@@ -32,7 +35,7 @@ export const CommandSearch: React.FC = () => {
             type="text"
             value={command}
             onChange={(e) => setCommand(e.target.value)}
-            placeholder="Enter a command (e.g., OPEN YOUTUBE AND PLAY...)"
+            placeholder="Enter a command (e.g., SEARCH FOR..., OPEN..., CHECK...)"
             className="input-field !pl-0 font-mono text-sm"
             disabled={isExecuting}
           />
@@ -50,9 +53,17 @@ export const CommandSearch: React.FC = () => {
           </button>
         </div>
       </form>
+      
+      {error && (
+        <div className="mt-2 flex items-center gap-2 text-red-500 dark:text-red-400 text-sm">
+          <AlertCircle className="w-4 h-4" />
+          <span>{error}</span>
+        </div>
+      )}
+      
       <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-        Try commands like "OPEN YOUTUBE AND PLAY..." or "SEARCH FOR ... ON YOUTUBE"
+        Try commands like "SEARCH FOR...", "CHECK WEATHER IN...", "TRANSLATE...", or "OPEN..."
       </p>
     </div>
   );
-};
+}
